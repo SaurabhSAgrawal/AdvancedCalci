@@ -1,6 +1,45 @@
 #include<gtk/gtk.h>
 #include<math.h>
 #include"calculator.h"
+#include"stack.h"
+stack p;
+cstack o;
+//int precedance(char c);
+//void operation(char c);
+//int infixeval(char *a);
+
+void operation(char c){
+	double a,b;
+	a = pop(&p);
+	b = pop(&p);
+	switch(c){	
+		case'+':
+			push(&p, a+b);
+			break;
+		case'-':
+			push(&p, b-a);
+			break;	
+		case'*':
+			push(&p, b*a);
+			break;
+		case'/':
+			push(&p, b/a);
+			break;
+	}
+}
+
+int precedance(char c){
+	if( c == '-')
+		return 1;
+	else if( c == '+')
+		return 2;
+	else if( c == '*')
+		return 3;
+	else if(c == '/')
+		return 4;
+	else if(c =='(')
+		return 0;
+}
 
 //buffer to store the inputs in the text field that was declared in main
 extern gchar text_field_buffer[200];
@@ -24,7 +63,7 @@ gchar* b_minus = "-";
 gchar* b_divide = "/";
 gchar* b_multiply = "*";
 gchar* b_equals = "=";
-gchar* b_decimal = ".";
+gchar* b_ln = "ln";
 gchar* b_sin = "sin";
 gchar* b_cos = "cos";
 gchar* b_tan = "tan";
@@ -32,7 +71,7 @@ gchar* b_sqrt = "sqrt";
 gchar* b_sinh = "sinh";
 gchar* b_cosh = "cosh";
 gchar* b_tanh = "tanh";
-gchar* b_sq = "^";
+gchar* b_modulus = "|x|";
 gchar* b_ob = "(";
 gchar* b_cb = ")";
 gchar* b_fact = "x!";
@@ -66,7 +105,7 @@ gchar* return_button_label(gint index) {
 		case 23:
 			return b_multiply;
 		case 30:
-			return b_decimal;
+			return b_ln;
 		case 31:
 			return b0;
 		case 32:
@@ -88,7 +127,7 @@ gchar* return_button_label(gint index) {
 		case 52:
 			return b_tanh;
 		case 53:
-			return b_sq;
+			return b_modulus;
 		case 60:
 			return b_ob;
 		case 61:
@@ -119,78 +158,148 @@ void callback(GtkWidget *widget, gpointer data) {
 		gtk_entry_set_text(GTK_ENTRY(text_field),(gchar*)text_field_buffer);		
 	}
 }
-
 int calculation(char* text_field_buffer) {
-	int index = 0;char sym;
-	int return_value = return_symbol(text_field_buffer, &index, &sym);// gets the arithmetic operator and its position
-	if(return_value == 1) {// for mathematical expression
-  		char dest2[100];
-  		char dest1[100];
-  		
-  		make_string(text_field_buffer, dest1, dest2, index); //makes two number strings from the passed buffer
-  		clearbuffer(text_field_buffer); 
+	char *infix = text_field_buffer;
+	int i = 0, sum = 0;
+	char g;
+	init(&p);
+	cinit(&o);
+	while(infix[i] != '\0'){
+		switch(infix[i]){
+			case '1': case'2': case '3': case '4':
+			case '5': case'6': case '7': case '8':
+			case '9': case'0': 
+				sum = sum * 10 + infix[i] -'0';
+				i++;
+				break;
 
-  		double num1,num2;
-  		num1 = atof(dest1);//converts each stream to double
-  		num2 = atof(dest2);
+			case'+':
+				if(infix[i-1] != ')' && infix[i-1] != ' ' && infix[i-1] != ',' ){
+					push(&p, sum);
+					sum = 0;
+				}
+				if(cisempty(&o) != 0){
+					if(precedance(*ctop(&o)) <= 2)
+						cpush(&o, infix[i]);
+					else{
+						while(precedance(*ctop(&o)) > 2){
+							operation(*ctop(&o));
+							g = cpop(&o);
 
-  		char output[200];
-  		apply_currect_operation(output, sym, num1, num2);
-   		
-   		strcpy(text_field_buffer, output);
-   		//printf("%s",output);
-  	}
-  	else if(return_value == -1) {// invalid expression with multiple operators
-  		GtkWidget* dialog = gtk_message_dialog_new (NULL,
-                                 GTK_DIALOG_DESTROY_WITH_PARENT,
-                                 GTK_MESSAGE_ERROR,
-                                 GTK_BUTTONS_CLOSE,
-                                 "invalid or unsupported input\ncheck your expression");
-		gtk_dialog_run (GTK_DIALOG (dialog));
-		gtk_widget_destroy (dialog);
-  		clearbuffer(text_field_buffer);
-  		return 0;
-  	}
-  	else // pure number without operators.. so no change is required
-  		return;
-}
-
-void make_string(char* text_field_buffer, char* dest1, char* dest2, int index) {
-	int i;
-	for(i=0; i<index; ++i)
-		dest1[i] = text_field_buffer[i];
-	//append null characrter
-	dest1[i] = 0;
-
-	for (i = index+1; i < strlen(text_field_buffer); ++i) {
-		dest2[i-index-1] = text_field_buffer[i];
-	}
-	//null char
-	dest2[i-index-1] = 0;
-}
-
-int return_symbol(char* text_field_buffer, int* index, char* symbol) {
-	int i;
-	*symbol = 0;
-	*index = 0;
-	int symbolcount = 0;
-	for(i = 0; i < strlen(text_field_buffer); ++i) {
-		if (!isdigit(text_field_buffer[i]) && text_field_buffer[i] != '.') {
-			if ( (text_field_buffer[i] == '+' || text_field_buffer[i]=='-' || text_field_buffer[i]=='^' || text_field_buffer[i]=='*' || text_field_buffer[i]=='/') ) {
-				*index = i;
-				*symbol = text_field_buffer[i];
-				++symbolcount;
-			}
-			else return -1;
+						}
+						cpush(&o, infix[i]);
+					}
+				}
+				else
+					cpush(&o, infix[i]);
+				i++;
+				break;
+				
+			case'-':
+				if(infix[i-1] != ')' && infix[i-1] != ' ' && infix[i-1] != ','){
+					push(&p, sum);
+					sum = 0;
+				}
+				if(cisempty(&o) != 0){
+					if(precedance(*ctop(&o)) == 1)
+						cpush(&o, infix[i]);
+					else{
+						while(precedance(*ctop(&o)) > 1){	
+							operation(*ctop(&o));
+							g = cpop(&o);
+						}
+						cpush(&o, infix[i]);
+					}
+				}
+				else
+					cpush(&o, infix[i]);
+				i++;	
+				break;
+		
+			case'*': 
+				if(infix[i-1] != ')' && infix[i-1] != ' ' && infix[i-1] != ','){
+					push(&p, sum);
+					sum = 0;
+				}
+				if(cisempty(&o) != 0){
+					if(precedance(*ctop(&o)) <= 3)
+						cpush(&o, infix[i]);
+					else{
+						while(precedance(*ctop(&o)) > 3){	
+						operation(*ctop(&o));
+						g = cpop(&o);
+						}
+						cpush(&o, infix[i]);
+					}
+				}
+				else
+					cpush(&o, infix[i]);
+				i++;	
+				break;
+				
+			case'/': 
+				if(infix[i-1] != ')' && infix[i-1] != ' ' && infix[i-1] != ','){
+					push(&p, sum);
+					sum = 0;
+				}
+				if(cisempty(&o) != 0){
+					if(precedance(*ctop(&o)) <= 4)
+						cpush(&o,infix[i]);
+					else{
+						while(precedance(*ctop(&o)) > 4){	
+						operation(*ctop(&o));
+						g = cpop(&o);
+						}
+						cpush(&o, infix[i]);
+					}
+				}
+				else
+					cpush(&o, infix[i]);
+				i++;	
+				break;
+			
+			case'(':
+				cpush(&o, infix[i]);
+				i++;
+				break;
+				
+			case')':
+				if(infix[i-1] != ')' && infix[i-1] != ' ' && infix[i-1] != ','){
+					push(&p, sum);
+					sum = 0;
+				}
+				while(*ctop(&o) != '('){
+			        	operation(*ctop(&o));
+					g = cpop(&o);
+				}
+				g = cpop(&o);
+				i++;	
+				break;
+		
+			case ' ':
+			 	i++;				
+			 	break;
+			default:i++;
+				printf("Error!\n");
+				exit(1);
+				break;
 		}
 	}
-	if (symbolcount == 0) {
-		return 0; // pure number without operator
+	
+	if(infix[i] == '\0' &&infix[i-1] != ')' && infix[i-1] != ' ' && infix[i-1] != ',')
+		push(&p, sum);
+	while(cisempty(&o) != 0){
+				operation(*ctop(&o));
+				g = cpop(&o);
 	}
-	else
-		return 1; // valid expression
+	char output[100];
+	int y = top(&p);
+	//tostring(output, y);
+	itoa(y, output);
+	strcpy(text_field_buffer, output);
+	
 }
-
+	
 // clears any character string
 void clearbuffer(char* text_field_buffer) {
 	int i;
@@ -199,26 +308,24 @@ void clearbuffer(char* text_field_buffer) {
 	}
 }
 
-void apply_currect_operation(char* output, char symbol, double num1, double num2) {
-	if(symbol == '+') {
-		sprintf(output, "%.3f", num1+num2);
-		return;
+void itoa(int n,char s[]) {
+	int i, sign;
+	sign=n; 
+	i = 0;
+	do {
+		s[i++]= abs(n%10) + '0';
 	}
-	if(symbol == '-') {
-		sprintf(output, "%.3f", num1-num2);
-		return;
-	}
-	if(symbol == '*') {
-		sprintf(output, "%.3f", num1*num2);
-		return;
-	}
-	if(symbol == '/') {
-		sprintf(output, "%.3f", num1/num2);
-		return;
-	}
-	if(symbol == '^') {
-		//double ans = pow(num1, num2);
-		sprintf(output, "%.3f", pow(num1, num2));
-		return;
-	}
+	while((n /= 10) != 0);
+	if( sign < 0)
+	s[i++]='-';
+	s[i]='\0';
+	reverse(s);
 }
+
+void reverse(char s[]) {
+    int c,i,j;
+
+    for(i = 0, j = strlen(s) - 1; i < j; i++, j--)
+        c = s[i], s[i] = s[j], s[j] = c;
+}
+    
