@@ -243,14 +243,14 @@ void callback(GtkWidget *widget, gpointer data) {
 
 	}
 	else if(strcmp((gchar*)data, "|x|") == 0) {
-		double a = atof(text_field_buffer);
+		int a = atoi(text_field_buffer);
 		char *str = (char *)malloc(20);
 		clearbuffer(text_field_buffer);
 		if(a < 0) {
-			sprintf(str, "%lf", (-1 * a));
+			sprintf(str, "%d", (-1 * a));
 		}
 		if(a >= 0) {
-			 sprintf(str, "%lf", a);
+			 sprintf(str, "%d", a);
 		}
 		strcpy(text_field_buffer, str);
 		gtk_entry_set_text(GTK_ENTRY(text_field), (gchar*)text_field_buffer);
