@@ -1,18 +1,38 @@
+
+/*****************************************************************************
+ * Copyright (C) Saurabh Agrawal saurabhagrawal1483@gmail.com
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
+ *****************************************************************************/
+ 
 #include<gtk/gtk.h>
+#include<string.h>
 #include<math.h>
+#include<stdlib.h>
 #include"calculator.h"
 #include"stack.h"
+
 stack p;
 cstack o;
-//int precedance(char c);
-//void operation(char c);
-//int infixeval(char *a);
 
-void operation(char c){
+//does the operation +, -, *, /
+void operation(char c) {
 	double a,b;
 	a = pop(&p);
 	b = pop(&p);
-	switch(c){	
+	switch(c) {	
 		case'+':
 			push(&p, a+b);
 			break;
@@ -28,7 +48,8 @@ void operation(char c){
 	}
 }
 
-int precedance(char c){
+//precedence of operators
+int precedence(char c) {
 	if( c == '-')
 		return 1;
 	else if( c == '+')
@@ -75,7 +96,7 @@ gchar* b_modulus = "|x|";
 gchar* b_ob = "(";
 gchar* b_cb = ")";
 gchar* b_fact = "x!";
-gchar* b_mod = "mod";
+gchar* b_sq = "sq";
 
 // returns text to be displayed on buttons
 gchar* return_button_label(gint index) {
@@ -135,7 +156,7 @@ gchar* return_button_label(gint index) {
 		case 62:
 			return b_fact;
 		case 63:
-			return b_mod;
+			return b_sq;
 	}
 }
 
@@ -149,15 +170,121 @@ void callback(GtkWidget *widget, gpointer data) {
 		calculation(text_field_buffer);
 		gtk_entry_set_text(GTK_ENTRY(text_field), text_field_buffer);
 	}
+	
 	else if(strcmp((gchar*)data, "AC") == 0) {// if its the AC button clear inputs
 		clearbuffer(text_field_buffer); // clear the inputs
 		gtk_entry_set_text(GTK_ENTRY(text_field),(gchar*)text_field_buffer);
 	}
-	else {// continue to take valid inputs
+	else {// continue to take vali inputs
 		strcat (text_field_buffer,(gchar*)data);
 		gtk_entry_set_text(GTK_ENTRY(text_field),(gchar*)text_field_buffer);		
 	}
+	if(strcmp((gchar*)data, "sin") == 0) {
+		double a = atof(text_field_buffer);
+		char *str = (char *)malloc(20);
+		clearbuffer(text_field_buffer);
+		sprintf(str, "%lf", sin(a)); 
+		strcpy(text_field_buffer, str);
+		gtk_entry_set_text(GTK_ENTRY(text_field), (gchar*)text_field_buffer);
+	}
+	else if(strcmp((gchar*)data, "cos") == 0) {
+		double a = atof(text_field_buffer);
+		char *str = (char *)malloc(20);
+		clearbuffer(text_field_buffer);
+		sprintf(str, "%lf", cos(a)); 
+		strcpy(text_field_buffer, str);
+		gtk_entry_set_text(GTK_ENTRY(text_field), (gchar*)text_field_buffer);
+	}
+	else if(strcmp((gchar*)data, "tan") == 0) {
+		double a = atof(text_field_buffer);
+		char *str = (char *)malloc(20);
+		clearbuffer(text_field_buffer);
+		sprintf(str, "%lf", tan(a)); 
+		strcpy(text_field_buffer, str);
+		gtk_entry_set_text(GTK_ENTRY(text_field), (gchar*)text_field_buffer);
+
+	}
+	else if(strcmp((gchar*)data, "sinh") == 0) {
+		double a = atof(text_field_buffer);
+		char *str = (char *)malloc(20);
+		clearbuffer(text_field_buffer);
+		sprintf(str, "%lf", sinh(a)); 
+		strcpy(text_field_buffer, str);
+		gtk_entry_set_text(GTK_ENTRY(text_field), (gchar*)text_field_buffer);
+
+	}
+	else if(strcmp((gchar*)data, "cosh") == 0) {
+		double a = atof(text_field_buffer);
+		char *str = (char *)malloc(20);
+		clearbuffer(text_field_buffer);
+		sprintf(str, "%lf", cosh(a)); 
+		strcpy(text_field_buffer, str);
+		gtk_entry_set_text(GTK_ENTRY(text_field), (gchar*)text_field_buffer);
+
+	}
+	else if(strcmp((gchar*)data, "tanh") == 0) {
+		double a = atof(text_field_buffer);
+		char *str = (char *)malloc(20);
+		clearbuffer(text_field_buffer);
+		sprintf(str, "%lf", tanh(a)); 
+		strcpy(text_field_buffer, str);
+		gtk_entry_set_text(GTK_ENTRY(text_field), (gchar*)text_field_buffer);
+
+	}
+	else if(strcmp((gchar*)data, "x!") == 0) {
+		long long int a = atoi(text_field_buffer);
+		char *str = (char *)malloc(200);
+		clearbuffer(text_field_buffer);
+		sprintf(str, "%lld", fact(a));
+		strcpy(text_field_buffer, str);
+		gtk_entry_set_text(GTK_ENTRY(text_field), (gchar*)text_field_buffer);
+
+	}
+	else if(strcmp((gchar*)data, "|x|") == 0) {
+		double a = atof(text_field_buffer);
+		char *str = (char *)malloc(20);
+		clearbuffer(text_field_buffer);
+		if(a < 0) {
+			sprintf(str, "%lf", (-1 * a));
+		}
+		if(a >= 0) {
+			 sprintf(str, "%lf", a);
+		}
+		strcpy(text_field_buffer, str);
+		gtk_entry_set_text(GTK_ENTRY(text_field), (gchar*)text_field_buffer);
+
+	}
+	else if(strcmp((gchar*)data, "sq") == 0) {
+		long long int a = atoi(text_field_buffer);
+		char *str = (char *)malloc(200);
+		clearbuffer(text_field_buffer);
+		sprintf(str, "%lld", a * a); 
+		strcpy(text_field_buffer, str);
+		gtk_entry_set_text(GTK_ENTRY(text_field), (gchar*)text_field_buffer);
+
+	}
+	else if(strcmp((gchar*)data, "ln") == 0) {
+		double a = atof(text_field_buffer);
+		char *str = (char *)malloc(20);
+		clearbuffer(text_field_buffer);
+		sprintf(str, "%lf", log(a)); 
+		strcpy(text_field_buffer, str);
+		gtk_entry_set_text(GTK_ENTRY(text_field), (gchar*)text_field_buffer);
+
+	}
+	else if(strcmp((gchar*)data, "sqrt") == 0) {
+		double a = atof(text_field_buffer);
+		char *str = (char *)malloc(20);
+		clearbuffer(text_field_buffer);
+		sprintf(str, "%lf", sqrt(a)); 
+		strcpy(text_field_buffer, str);
+		gtk_entry_set_text(GTK_ENTRY(text_field), (gchar*)text_field_buffer);
+
+	}
+	
 }
+
+//calculates infix expression
 int calculation(char* text_field_buffer) {
 	char *infix = text_field_buffer;
 	int i = 0, sum = 0;
@@ -179,10 +306,10 @@ int calculation(char* text_field_buffer) {
 					sum = 0;
 				}
 				if(cisempty(&o) != 0){
-					if(precedance(*ctop(&o)) <= 2)
+					if(precedence(*ctop(&o)) <= 2)
 						cpush(&o, infix[i]);
 					else{
-						while(precedance(*ctop(&o)) > 2){
+						while(precedence(*ctop(&o)) > 2){
 							operation(*ctop(&o));
 							g = cpop(&o);
 
@@ -201,10 +328,10 @@ int calculation(char* text_field_buffer) {
 					sum = 0;
 				}
 				if(cisempty(&o) != 0){
-					if(precedance(*ctop(&o)) == 1)
+					if(precedence(*ctop(&o)) == 1)
 						cpush(&o, infix[i]);
 					else{
-						while(precedance(*ctop(&o)) > 1){	
+						while(precedence(*ctop(&o)) > 1){	
 							operation(*ctop(&o));
 							g = cpop(&o);
 						}
@@ -222,10 +349,10 @@ int calculation(char* text_field_buffer) {
 					sum = 0;
 				}
 				if(cisempty(&o) != 0){
-					if(precedance(*ctop(&o)) <= 3)
+					if(precedence(*ctop(&o)) <= 3)
 						cpush(&o, infix[i]);
 					else{
-						while(precedance(*ctop(&o)) > 3){	
+						while(precedence(*ctop(&o)) > 3){	
 						operation(*ctop(&o));
 						g = cpop(&o);
 						}
@@ -243,10 +370,10 @@ int calculation(char* text_field_buffer) {
 					sum = 0;
 				}
 				if(cisempty(&o) != 0){
-					if(precedance(*ctop(&o)) <= 4)
+					if(precedence(*ctop(&o)) <= 4)
 						cpush(&o,infix[i]);
 					else{
-						while(precedance(*ctop(&o)) > 4){	
+						while(precedence(*ctop(&o)) > 4){	
 						operation(*ctop(&o));
 						g = cpop(&o);
 						}
@@ -279,9 +406,17 @@ int calculation(char* text_field_buffer) {
 			case ' ':
 			 	i++;				
 			 	break;
-			default:i++;
-				printf("Error!\n");
-				exit(1);
+			default:
+				i++;
+				GtkWidget* dialog = gtk_message_dialog_new (NULL,
+                                 GTK_DIALOG_DESTROY_WITH_PARENT,
+                                 GTK_MESSAGE_ERROR,
+                                 GTK_BUTTONS_CLOSE,
+                                 "Invalid or unsupported input\nCheck your expression");
+				gtk_dialog_run (GTK_DIALOG (dialog));
+				gtk_widget_destroy (dialog);
+  				clearbuffer(text_field_buffer);
+  				return 0;
 				break;
 		}
 	}
@@ -294,7 +429,6 @@ int calculation(char* text_field_buffer) {
 	}
 	char output[100];
 	int y = top(&p);
-	//tostring(output, y);
 	itoa(y, output);
 	strcpy(text_field_buffer, output);
 	
@@ -308,6 +442,7 @@ void clearbuffer(char* text_field_buffer) {
 	}
 }
 
+//converts integer to string
 void itoa(int n,char s[]) {
 	int i, sign;
 	sign=n; 
@@ -322,10 +457,52 @@ void itoa(int n,char s[]) {
 	reverse(s);
 }
 
+//reverses a string
 void reverse(char s[]) {
     int c,i,j;
 
     for(i = 0, j = strlen(s) - 1; i < j; i++, j--)
         c = s[i], s[i] = s[j], s[j] = c;
 }
-    
+
+//calculates factorial
+long long int fact(long long int n) {
+	long long int a;
+	int i;
+	if(n == 0)
+		return 1;
+	a = n;
+	i = n - 1;
+	while(i > 0) {
+		a = a * i;
+		i = i - 1;
+	}
+	return a;
+}
+
+//calculates factorial   
+char* fact1(int n) {
+	int *str, a[200], index, temp, i;
+	a[0] = 1;
+	index = 0;
+	char c[200];
+	
+	for(; n >= 2; n--) {
+		temp = 0;
+		for(i =0 ; i <= index; i++) {
+			temp = (a[i] * n) + temp;
+			a[i] = temp % 10;
+			temp = temp / 10;
+		}
+		while(temp > 0) {
+			a[++index] = temp % 10;
+			temp = temp / 10;
+		}
+	}		
+	for(i = 0; i < index; i++)
+		c[i] = a[i] + '0';
+	//str = a;
+	char *k = c;
+	printf("%s", k);
+	return k;
+}
